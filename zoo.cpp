@@ -25,7 +25,7 @@ void Zoo::getSpecialEvent() {
     int random_event = (rand() % 4);    //rand 0-3
     switch(random_event) {
         case 0:
-            //makeSick();
+            makeSick();
             break;
         case 1:
             //giveBirth();
@@ -75,6 +75,86 @@ void Zoo::loopAnimalsCost() {
         //std::cout << sea_lions[i].getFoodCost(food_base);
     }
 }
+
+
+
+void Zoo::makeSick() {
+    if(num_tigers + num_blackbears + num_sealions > 0) {
+        int choice = (rand() % 3);
+        if(choice == 2) {
+            if(num_sealions > 0) {
+                int animal_num = (rand() % num_sealions);
+                std::cout << "Sadly, one of your Sea Lions has passed away...\n\n";
+                removeAnimal(choice, animal_num);
+            } else {
+                makeSick(); //call again untill it works
+            }
+        } else if(choice == 1) {
+            if(num_tigers > 0) {
+                int animal_num = (rand() % num_tigers);
+                std::cout << "Sadly, one of your Tigers has passed away...\n\n";
+                removeAnimal(choice, animal_num);
+            } else {
+                makeSick(); //call again untill it works
+            }
+        } else {
+            if(num_blackbears > 0) {
+                int animal_num = (rand() % num_blackbears);
+                std::cout << "Sadly, one of your Black Bears has passed away...\n\n";
+                removeAnimal(choice, animal_num);
+            } else {
+                makeSick(); //call again untill it works
+            }
+        }
+
+    } else {
+        std::cout << "One of your animals would have gotten sick, but you have no animals\n";
+    }
+}
+
+
+
+void Zoo::removeAnimal(int type, int num) {
+    int counter = 0;
+    if(type == 2) {
+        num_sealions--; //new array with one less
+        SeaLion* sea_lions_temp = new SeaLion[num_sealions];
+        for(int i = 0; i < num_sealions + 1; i++) { //copy all but new one
+            if(i == num) {
+                 continue;   //skip the one to be deleted
+            }
+            sea_lions_temp[counter] = sea_lions[i];
+        }
+        delete [] sea_lions;
+        sea_lions = sea_lions_temp; //new array overights old
+    }
+    else if(type == 1) {
+        num_tigers--; //make new array, copy in
+        Tiger* tigers_temp = new Tiger[num_tigers];
+        for(int i = 0; i < num_tigers + 1; i++) { //copy all but new one
+            if(i == num) {
+                continue;
+            }
+            tigers_temp[counter] = tigers[i];
+        }
+        delete [] tigers;
+        tigers = tigers_temp; //new array overights old
+    }
+    else {
+        num_blackbears--; //make new array, copy in
+        BlackBear* blackbears_temp = new BlackBear[num_blackbears];
+        for(int i = 0; i < num_blackbears + 1; i++) { //copy all but new one
+            if(i == num) {
+                continue;
+            }
+            blackbears_temp[counter] = black_bears[i];
+        }
+        delete [] black_bears;
+        black_bears = blackbears_temp; //new array overights old
+    }  
+}
+
+
 
 
 void Zoo::buyAnimals() {

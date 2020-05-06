@@ -32,6 +32,8 @@ class Zoo {
         void getFoodBase();
         void loopAnimalsRev();
         void loopAnimalsCost();
+        void makeSick();
+        void removeAnimal(int, int);
         void buyAnimals();
         void addAnimal(int, int);
         void printInfo();
