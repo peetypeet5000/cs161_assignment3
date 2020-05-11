@@ -11,11 +11,13 @@ class Animal {
         int cost;
         
     public:
-        Animal() { };
+        Animal();
         void incrementAge();
         int getFoodCost(int);
         int getRev();
         int getCost();
+        int getAge();
+        void setAge(int);
 
 
 };

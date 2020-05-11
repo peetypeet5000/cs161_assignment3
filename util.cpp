@@ -84,3 +84,20 @@ bool isInt(string input) {
 	return false;
 	}
 }
+
+
+
+std::string getFancyType(int type) {
+	switch (type) {
+		case 2:
+			return "Sea Lion";
+			break;
+		case 1:
+			return "Tiger";
+			break;
+		case 0:
+			return "Black Bear";
+			break;
+	}
+	return "Error (get fancy type)";
+}

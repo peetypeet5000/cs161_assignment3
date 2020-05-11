@@ -14,6 +14,7 @@ void Zoo::doTurn() {
     buyAnimals();
     loopAnimalsCost();
     printInfo();
+    done = checkLoss();
     } while(done == false);
 }
 
@@ -28,7 +29,7 @@ void Zoo::getSpecialEvent() {
             makeSick();
             break;
         case 1:
-            //giveBirth();
+            checkBirth();
             break;
         case 2:
             high_attendance = true;
@@ -42,22 +43,86 @@ void Zoo::getSpecialEvent() {
 void Zoo::getFoodBase() {
     float rand_mult = ((rand() % 46) + 80);  //rand 8-12
     //makes deimal .8 - 1.2
-    std::cout << "food mult" << (rand_mult/100);
     food_base = food_base * (rand_mult/100);
 }
 
 
 void Zoo::loopAnimalsRev() {
     for(int i  = 0; i < num_sealions; i++) {
-        bank = bank + sea_lions[i].getRev();
+        bank = bank + sea_lions[i].getRev(high_attendance);
+        sea_lions[i].incrementAge();
     }
     for(int i  = 0; i < num_tigers; i++) {
         bank = bank + tigers[i].getRev();
+        tigers[i].incrementAge();
     }
     for(int i  = 0; i < num_blackbears; i++) {
         bank = bank + black_bears[i].getRev();
+        black_bears[i].incrementAge();
     }
 }
+
+
+void Zoo::checkBirth() {
+    int counter = 0;
+    if((num_sealions + num_tigers + num_blackbears) > 0) {
+        for(int i  = 0; i < num_sealions; i++) {
+            if(sea_lions[i].getAge() >= 48) {
+                counter++;
+            }
+        }
+        for(int i  = 0; i < num_tigers; i++) {
+            if(tigers[i].getAge() >= 48) {
+                counter++;
+            }
+        }
+        for(int i  = 0; i < num_blackbears; i++) {
+            if(black_bears[i].getAge() >=48) {
+                counter++;
+            }
+        }
+    }
+    if(counter > 0) {
+        giveBirth(); //only calls if there is a valid animal
+        //otherwise it could get stuck in an infinite loop
+    }
+}
+
+
+
+void Zoo::giveBirth() {
+    int selection = 0, animal_type = rand() % 3, done = 0;
+    if(animal_type == 2) {
+        if(num_sealions > 0) {
+            selection = (rand() % num_sealions);    //gets random animal
+            if(sea_lions[selection].getAge() >= 48) {
+                addAnimal(2, 1, 0); //makes babies
+                done = 1;
+            }
+        } 
+   } else if(animal_type == 1) {
+        if(num_tigers > 0) {
+            selection = (rand() % num_tigers);
+            if(tigers[selection].getAge() >= 48) {
+                addAnimal(1, 3, 0);
+                done = 1;
+            } 
+        }
+   } else {
+        if(num_blackbears > 0) {
+            selection = (rand() % num_blackbears);
+            if(black_bears[selection].getAge() >= 48) {
+                addAnimal(0, 2, 0);
+                done = 1;
+            }
+        } 
+    }
+    if(done == 0) {
+        giveBirth(); //calls again if couldnt find one
+    }
+}
+
+
 
 
 
@@ -84,24 +149,21 @@ void Zoo::makeSick() {
         if(choice == 2) {
             if(num_sealions > 0) {
                 int animal_num = (rand() % num_sealions);
-                std::cout << "Sadly, one of your Sea Lions has passed away...\n\n";
-                removeAnimal(choice, animal_num);
+                sickAnimal(choice, animal_num, sea_lions[animal_num].getAge());
             } else {
                 makeSick(); //call again untill it works
             }
         } else if(choice == 1) {
             if(num_tigers > 0) {
                 int animal_num = (rand() % num_tigers);
-                std::cout << "Sadly, one of your Tigers has passed away...\n\n";
-                removeAnimal(choice, animal_num);
+                sickAnimal(choice, animal_num, tigers[animal_num].getAge());
             } else {
                 makeSick(); //call again untill it works
             }
         } else {
             if(num_blackbears > 0) {
                 int animal_num = (rand() % num_blackbears);
-                std::cout << "Sadly, one of your Black Bears has passed away...\n\n";
-                removeAnimal(choice, animal_num);
+                sickAnimal(choice, animal_num, black_bears[animal_num].getAge());
             } else {
                 makeSick(); //call again untill it works
             }
@@ -114,8 +176,33 @@ void Zoo::makeSick() {
 
 
 
+void Zoo::sickAnimal(int type, int num, int age) {
+    int cost_to_heal = 0;
+    //calculates cost to heal
+    if(type == 2)
+        cost_to_heal = 400;
+    else if(type == 1)
+        cost_to_heal = 7500;
+    else
+        cost_to_heal = 3000;
+
+    if(age <= 6) {
+        cost_to_heal = cost_to_heal * 2; //double sickness cost for baby
+    }
+    
+    if(bank > cost_to_heal) {
+        std::cout << "One of your " << getFancyType(type) << "s got sick, but it recovered. This cost $" << cost_to_heal << std::endl << std::endl;
+        bank = bank - cost_to_heal;
+    } else {
+        removeAnimal(type, num); //kills animal if they could not afford
+    }
+}
+
+
+
 void Zoo::removeAnimal(int type, int num) {
     int counter = 0;
+    std::cout << "Sadly, one of your " << getFancyType(type) << "s has passed away...\n\n";
     if(type == 2) {
         num_sealions--; //new array with one less
         SeaLion* sea_lions_temp = new SeaLion[num_sealions];
@@ -175,12 +262,12 @@ void Zoo::buyAnimals() {
         amount = getInt();
         } while (checkRange(amount, 2, 1) == false);
 
-        addAnimal(choice, amount);
+        addAnimal(choice, amount, 48);
     }
 }
 
 
-void Zoo::addAnimal(int choice, int amount) {
+void Zoo::addAnimal(int choice, int amount, int age) {
     for(int i = 0; i < amount; i++) {
         if(choice == 2) {
             num_sealions++; //make new array, copy in
@@ -191,6 +278,7 @@ void Zoo::addAnimal(int choice, int amount) {
                 }
                 delete [] sea_lions;
             }
+            sea_lions_temp[num_sealions - 1].setAge(48);
             sea_lions = sea_lions_temp; //new array overights old
         }
         else if(choice == 1) {
@@ -202,6 +290,7 @@ void Zoo::addAnimal(int choice, int amount) {
                 }
                 delete [] tigers;
             }
+            tigers_temp[num_tigers - 1].setAge(48);
             tigers = tigers_temp; //new array overights old
         }
         else {
@@ -213,6 +302,7 @@ void Zoo::addAnimal(int choice, int amount) {
                 }
                 delete [] black_bears;
             }
+            blackbears_temp[num_blackbears - 1].setAge(48);
             black_bears = blackbears_temp; //new array overights old
         }
     }
@@ -222,14 +312,36 @@ void Zoo::addAnimal(int choice, int amount) {
 
 void Zoo::printInfo() {
     months++;
-    std::cout << "\n\nCurrent Zoo Status: \n\n";
+    std::cout << "============= END OF MONTH " << months << " =============";
+    std::cout << "\n\nCurrent Animals: \n\n";
     std::cout << "Number of Sea Lions: " << num_sealions << std::endl;
-    std::cout << "Number of Tigers: " << num_tigers << std::endl;
-    std::cout << "Number of Black Bears: " << num_blackbears << std::endl;
-    std::cout << "Bank Balance: " << bank << std::endl;
+    for(int i = 0; i < num_sealions; i++) {
+        std::cout << "  Sea Lion " << (i + 1) << " age: " << sea_lions[i].getAge();
+    }
+    std::cout << "\n\nNumber of Tigers: " << num_tigers << std::endl;
+    for(int i = 0; i < num_tigers; i++) {
+        std::cout << "  Tiger " << (i + 1) << " age: " << tigers[i].getAge();
+    }
+    std::cout << "\n\nNumber of Black Bears: " << num_blackbears << std::endl;
+    for(int i = 0; i < num_blackbears; i++) {
+        std::cout << "  Black Bear " << (i + 1) << " age: " << black_bears[i].getAge();
+    }
+    std::cout << "\n\nCurrent Zoo Status:\nBank Balance: " << bank << std::endl;
     std::cout << "Months Elapsed: " << months << std::endl;
     std::cout << "Food Base: " << food_base << std::endl;
     std::cout << "High Attendance?: " << high_attendance << std::endl;
     std::cout << "Food Type: " << food_type << std::endl;
+    std::cout << "===================================================\n\n";
 
+}
+
+
+
+bool Zoo::checkLoss() {
+    if(bank <= 0) {
+        std::cout << "You lost the game!\n\n";
+        return true;
+    } else {
+        return false;
+    }
 }

@@ -30,13 +30,18 @@ class Zoo {
         void doTurn();
         void getSpecialEvent();
         void getFoodBase();
+        void checkBirth();
+        void giveBirth();
         void loopAnimalsRev();
         void loopAnimalsCost();
         void makeSick();
+        void sickAnimal(int, int, int);
         void removeAnimal(int, int);
         void buyAnimals();
-        void addAnimal(int, int);
+        void addAnimal(int, int, int);
         void printInfo();
+        int getTotalAnimals();
+        bool checkLoss();
 
 };
 
